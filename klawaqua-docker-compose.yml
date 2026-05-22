@@ -1,0 +1,168 @@
+# KLAWAQUA-AGI - Docker Compose Unificado
+# Un solo compose = sin orphans, arranque coordinado
+services:
+  # ========== AGENT ZERO ==========
+  agent-zero:
+    container_name: agent-zero
+    image: agent0ai/agent-zero:latest
+    ports: ["5080:80"]
+    environment:
+      LLM_PROVIDER: ollama
+      LLM_DEFAULT_MODEL: klawaqua-finetuned
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      LLM_EMBEDDING_PROVIDER: ollama
+      LLM_EMBEDDING_MODEL: all-minilm
+      BRANCH: main
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/health"]
+      interval: 30s
+      retries: 3
+      start_period: 90s
+
+  # ========== OPENHANDS ==========
+  openhands:
+    container_name: openhands-app
+    image: openhands:latest
+    ports: ["3005:3000"]
+    environment:
+      SANDBOX_RUNTIME_CONTAINER_IMAGE: ghcr.io/all-hands-ai/runtime:0.26-nikolaik
+      LLM_BASE_URL: http://host.docker.internal:11434
+      LLM_MODEL: ollama/klawaqua-finetuned
+      LLM_API_KEY: ollama
+      LL_MAX_ITERATIONS: "100"
+      WORKSPACE_BASE: /opt/klawaqua/projects
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.openhands-state:/.openhands-state
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      retries: 3
+      start_period: 60s
+
+  # ========== THEPOPEBOT ==========
+  event-handler:
+    container_name: thepopebot-event-handler
+    image: stephengpope/thepopebot:event-handler-1.2.75
+    ports: ["8080:80"]
+    environment:
+      AUTH_SECRET: klawaqua2026-secure-abc123def456
+      NEXTAUTH_SECRET: klawaqua2026-secure-abc123def456
+      TRAEFIK_CONFIG_DIR: /traefik-config
+      LLM_BASE_URL: http://host.docker.internal:11434
+      LLM_MODEL: klawaqua-finetuned
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /opt/klawaqua/projects/thepopebot-instance:/project
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/ping"]
+      interval: 10s
+      retries: 3
+      start_period: 60s
+
+  # ========== LITELLM PROXY ==========
+  litellm:
+    container_name: litellm-proxy
+    image: ghcr.io/berriai/litellm:main-latest
+    command: --config /litellm/main.yaml --port 4000
+    ports: ["4000:4000"]
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /opt/klawaqua/projects/thepopebot-instance/event-handler/litellm:/litellm:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 15s
+
+  # ========== POSTGRESQL ==========
+  postgres:
+    container_name: postgres-letta
+    image: postgres:15
+    ports: ["5433:5432"]
+    environment:
+      POSTGRES_PASSWORD: klawaqua2024
+      POSTGRES_DB: letta
+      POSTGRES_USER: letta
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U letta"]
+      interval: 10s
+      retries: 3
+
+  # ========== REDIS ==========
+  redis:
+    container_name: redis-cache
+    image: redis:7-alpine
+    ports: ["6380:6379"]
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 3
+
+  # ========== SEARXNG (Local Deep Research) ==========
+  searxng-ldr:
+    container_name: ldr-searxng
+    image: searxng/searxng:latest
+    ports: ["8081:8080"]
+    networks:
+      - default
+    volumes:
+      - /opt/klawaqua/data/ldr-searxng:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8081/
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========== LOCAL DEEP RESEARCH ==========
+  local-deep-research:
+    container_name: ldr-web
+    image: localdeepresearch/local-deep-research:latest
+    ports: ["5000:5000"]
+    networks:
+      - default
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - LDR_DATA_DIR=/data
+      - LDR_LLM_PROVIDER=ollama
+      - LDR_LLM_OLLAMA_MODEL=klawaqua-finetuned
+      - LDR_LLM_OLLAMA_URL=http://host.docker.internal:11434
+      - LDR_SEARCH_ENGINE=arxiv
+      - LDR_SECRET_KEY=klawaqua-ldr-secret-2026
+      - LDR_ALLOW_REGISTRATION=true
+    volumes:
+      - /opt/klawaqua/data/ldr:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5000/"]
+      interval: 30s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  pg_data:
+  redis_data:

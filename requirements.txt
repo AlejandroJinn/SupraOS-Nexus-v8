@@ -1,0 +1,7 @@
+# KlawAqua-AGI — Ecosistema de IA Local Soberano
+# Filosofía: Local-First · €0/mes · Privacidad 100% · Soberanía
+
+# Dependencias del sistema
+fastapi uvicorn aiohttp pydantic huggingface_hub
+diffusers transformers accelerate torch
+edge-tts pillow

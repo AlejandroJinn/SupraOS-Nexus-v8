@@ -1,0 +1,79 @@
+# ═══════════════════════════════════════════════════════════════
+# KlawAqua-AGI .gitignore — Excluir datos pesados y dependencias
+# ═══════════════════════════════════════════════════════════════
+
+# Modelos y datos pesados
+/models/
+/data/*.db
+/data/*.sqlite
+/data/*.sqlite3
+/data/billing/*.json
+*.gguf
+*.ggml
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# Proyectos de terceros (205 repos)
+/projects/
+!/projects/openmanus/
+
+# Docker volumes y datos persistentes
+*.persist/
+pgdata/
+redis/
+*.docker/
+
+# Logs y temporales
+*.log
+/tmp/
+/logs/
+*.tmp
+*.swp
+*.swo
+*~
+
+# Entornos virtuales y dependencias
+venv/
+.env/
+__pycache__/
+*.pyc
+node_modules/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Chainlit y herramientas externas
+.chainlit/
+comfyui/
+
+# Archivos grandes
+*.mp4
+*.avi
+*.mkv
+*.wav
+*.mp3
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Backups locales
+archive/
+*.bak
+
+# Excepciones: mantener estructura vacia si es necesario
+!projects/.gitkeep
+!models/.gitkeep

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KlawAqua Nexus v8 — SOULED | SupraOS</title>
+<style>
+:root{--bg:#050a14;--card:#0a1628;--card2:#0d1e3a;--accent:#00d4ff;--accent2:#00f0ff;--green:#00e676;--red:#ff1744;--yellow:#ffd600;--text:#e0f7ff;--text2:#8aa8c8;--border:#112240;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}
+body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+::webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+@keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px var(--accent);}50%{box-shadow:0 0 20px var(--accent),0 0 40px var(--accent2);}}
+
+.header{position:sticky;top:0;z-index:100;background:rgba(5,10,20,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:15px 30px;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;animation:glow 3s infinite;}
+.logo h1{font-size:1.4rem;font-weight:700;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo span{font-size:0.75rem;color:var(--text2);display:block;margin-top:-2px;}
+.status-bar{display:flex;gap:20px;align-items:center;}
+.metric{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.metric-label{font-size:0.6rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+.metric-value{font-size:0.85rem;font-weight:700;font-variant-numeric:tabular-nums;}
+.metric-bar{width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.metric-bar-fill{height:100%;border-radius:2px;transition:width 1s ease;}
+.online-dot{width:10px;height:10px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;box-shadow:0 0 8px var(--green);}
+
+.container{padding:20px 30px;max-width:1600px;margin:0 auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:16px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;animation:slideIn 0.5s ease both;transition:all 0.3s;}
+.card:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(0,212,255,0.08);transform:translateY(-2px);}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.card-title{font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:8px;}
+.card-icon{font-size:1.1rem;}
+.card-badge{font-size:0.7rem;padding:3px 8px;border-radius:4px;background:var(--card2);color:var(--text2);}
+.card-badge.live{background:rgba(0,230,118,0.1);color:var(--green);}
+.card-badge.warn{background:rgba(255,214,0,0.1);color:var(--yellow);}
+.card-badge.off{background:rgba(255,23,68,0.1);color:var(--red);}
+
+.service-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.service-item{background:var(--card2);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;font-size:0.8rem;transition:all 0.3s;}
+.service-item:hover{background:rgba(0,212,255,0.05);}
+.service-name{font-weight:600;font-size:0.75rem;}
+.service-port{color:var(--text2);font-size:0.65rem;}
+.service-status{display:flex;align-items:center;gap:6px;font-size:0.7rem;}
+.status-dot{width:7px;height:7px;border-radius:50%;}
+.status-dot.online{background:var(--green);box-shadow:0 0 5px var(--green);}
+.status-dot.offline{background:var(--red);box-shadow:0 0 5px var(--red);}
+.status-dot.warn{background:var(--yellow);}
+
+.emotion{display:flex;align-items:center;gap:10px;margin:8px 0;}
+.emotion-name{width:80px;font-size:0.8rem;color:var(--text2);}
+.emotion-bar{flex:1;height:8px;background:var(--card2);border-radius:4px;overflow:hidden;}
+.emotion-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+.emotion-value{width:40px;text-align:right;font-size:0.75rem;font-variant-numeric:tabular-nums;}
+
+.briefing-text{font-size:0.78rem;color:var(--text2);line-height:1.5;white-space:pre-wrap;max-height:300px;overflow-y:auto;padding-right:8px;}
+.briefing-text::-webkit-scrollbar{width:4px;}
+
+.hw-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.8rem;}
+.hw-item:last-child{border-bottom:none;}
+.hw-name{color:var(--text2);}
+.hw-value{font-weight:700;font-variant-numeric:tabular-nums;}
+
+.log-list{font-size:0.75rem;color:var(--text2);max-height:200px;overflow-y:auto;}
+.log-entry{padding:4px 0;border-bottom:1px dashed var(--border);}
+.log-time{color:var(--accent);font-variant-numeric:tabular-nums;}
+
+.ws-chat{position:fixed;bottom:20px;right:20px;width:380px;height:500px;background:var(--card);border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;z-index:200;box-shadow:0 8px 40px rgba(0,0,0,0.5);transition:all 0.3s;}
+.ws-chat.collapsed{height:52px;width:200px;}
+.ws-chat-header{padding:12px 16px;background:var(--card2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid var(--border);}
+.ws-chat-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;}
+.ws-chat-input{padding:12px;display:flex;gap:8px;background:var(--card2);}
+.ws-msg{padding:8px 12px;border-radius:12px;max-width:85%;font-size:0.82rem;word-break:break-word;line-height:1.4;}
+.ws-msg.user{align-self:flex-end;background:var(--accent);color:#000;font-weight:500;}
+.ws-msg.ai{align-self:flex-start;background:var(--card2);border:1px solid var(--border);}
+.ws-msg.system{align-self:center;font-size:0.7rem;color:var(--text2);background:transparent;}
+.ws-bubble{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(0,212,255,0.4);transition:all 0.3s;z-index:200;}
+.ws-bubble:hover{transform:scale(1.1);}
+.ws-bubble.hidden{display:none;}
+input[type="text"]{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:0.85rem;outline:none;}
+input[type="text"]:focus{border-color:var(--accent);}
+button{background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 16px;font-weight:600;font-size:0.8rem;cursor:pointer;transition:all 0.2s;}
+button:hover{background:var(--accent2);}
+.send-btn{padding:8px 12px;font-size:1rem;}
+.collapse-btn{background:transparent;color:var(--text);padding:4px 8px;font-size:1.2rem;}
+
+.gauge{display:flex;align-items:center;justify-content:center;margin:10px 0;}
+.gauge circle{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dasharray 1s ease;}
+.gauge-bg{stroke:var(--card2);}
+.gauge-fill{stroke:var(--accent);filter:drop-shadow(0 0 4px var(--accent));}
+.gauge-text{font-size:1.5rem;font-weight:700;fill:var(--text);text-anchor:middle;}
+.gauge-label{font-size:0.6rem;fill:var(--text2);text-anchor:middle;}
+
+@media(max-width:768px){
+  .header{flex-wrap:wrap;gap:10px;padding:12px 16px;}
+  .container{padding:12px 16px;}
+  .grid{grid-template-columns:1fr;}
+  .ws-chat{width:calc(100vw-32px);left:16px;right:16px;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">KN</div>
+    <div>
+      <h1>KlawAqua <span style="color:var(--accent)">NEXUS v8</span></h1>
+      <span>SOULED — SupraOS</span>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="metric">
+      <span class="metric-label">CPU</span>
+      <span class="metric-value" id="cpu-val">--%</span>
+      <div class="metric-bar"><div class="metric-bar-fill" id="cpu-bar" style="width:0%;background:var(--green)"></div></div>
+    </div>
+    <div class="metric">
+      <span class="metric-label">RAM</span>
+      <span class="metric-value" id="ram-val">--%</span>
+      <div class="metric-bar"><div class="metric-bar-fill" id="ram-bar" style="width:0%;background:var(--accent)"></div></div>
+    </div>
+    <div class="metric">
+      <span class="metric-label">DISK</span>
+      <span class="metric-value" id="disk-val">--%</span>
+      <div class="metric-bar"><div class="metric-bar-fill" id="disk-bar" style="width:0%;background:var(--yellow)"></div></div>
+    </div>
+    <div class="metric">
+      <span class="metric-label">USB SSD</span>
+      <span class="metric-value" id="usb-val">--%</span>
+      <div class="metric-bar"><div class="metric-bar-fill" id="usb-bar" style="width:0%;background:var(--accent2)"></div></div>
+    </div>
+    <div class="online-dot" title="Nexus Online"></div>
+    <div class="metric" style="text-align:right;">
+      <span class="metric-label" id="time-label">--:--</span>
+      <span class="metric-value" style="font-size:0.7rem;color:var(--text2)">UTC+2</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- ROW 1: Services + Soul -->
+  <div class="grid">
+    <div class="card" style="grid-column:span 2;">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">🌐</span>Puentes del Ecosistema</div>
+        <span class="card-badge live" id="services-badge">10/10</span>
+      </div>
+      <div class="service-grid" id="services-grid">
+        <div class="service-item"><div class="service-name">Nexus</div><div class="service-port">:9095</div><div class="service-status"><span class="status-dot online"></span>Cargando...</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">💙</span>Alma del Sistema</div>
+        <span class="card-badge" id="soul-badge">ACTIVE</span>
+      </div>
+      <div class="gauge" style="width:120px;height:120px;margin:0 auto;">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <circle class="gauge-bg" cx="60" cy="60" r="50"/>
+          <circle class="gauge-fill" id="soul-circle" cx="60" cy="60" r="50" stroke-dasharray="0 314"/>
+          <text class="gauge-text" x="60" y="58" id="soul-pct">--</text>
+          <text class="gauge-label" x="60" y="76">ENERGY</text>
+        </svg>
+      </div>
+      <div id="emotions"></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Hardware + Autopilot + Backup -->
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">🔧</span>Hardware</div>
+        <span class="card-badge">LIVE</span>
+      </div>
+      <div id="hardware-list">
+        <div class="hw-item"><span class="hw-name">Sistema (nvme0n1)</span><span class="hw-value">...</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">🤖</span>Autopilot</div>
+        <span class="card-badge live">LOOP</span>
+      </div>
+      <div class="briefing-text" id="briefing-text">Cargando briefing...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">💾</span>Backup SSD USB</div>
+        <span class="card-badge warn" id="backup-badge">--</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.6;" id="backup-info">
+        Proyectos activos: --<br>Inactivos: --<br>USB: --
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Code Intelligence + Memory + Billing -->
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">📊</span>Code Intelligence</div>
+        <span class="card-badge">205 repos</span>
+      </div>
+      <div id="code-stats" style="font-size:0.8rem;color:var(--text2);line-height:1.6;">Escaneando...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">🧠</span>Memoria KAIYA</div>
+        <span class="card-badge">LIVE</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.6;" id="memory-info">
+        Interacciones: --<br>Summaries: --<br>Último resumen: --
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">💳</span>Billing</div>
+        <span class="card-badge" id="billing-badge">SIM</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.6;" id="billing-info">
+        Plans: Starter, Pro, Enterprise<br>Stripe: simulation mode
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Vision + Webhooks -->
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">👁️</span>Visión Multimodal</div>
+        <span class="card-badge live">GPU</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.6;">
+        Modelo: <b>MiniCPM-V-4.6 Q4_K_M</b><br>
+        Método: llama-cli batch (libera VRAM)<br>
+        GPU: RTX 3060 12GB
+      </div>
+      <div style="margin-top:10px;">
+        <input type="text" id="vision-input" placeholder="Ruta imagen /ruta/foto.jpg" style="width:100%;padding:8px 10px;font-size:0.75rem;">
+        <button onclick="analyzeImage()" style="margin-top:8px;width:100%">Analizar Imagen</button>
+        <div id="vision-result" style="margin-top:8px;font-size:0.75rem;color:var(--text);background:var(--card2);padding:8px;border-radius:6px;display:none;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="card-icon">🔗</span>Webhooks</div>
+        <span class="card-badge live">ON</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.6;">
+        GitHub push → auto-pull<br>
+        Telegram bot → comandos remotos<br>
+        Email → Himalaya CLI (próximamente)
+      </div>
+      <div style="margin-top:10px;font-size:0.75rem;color:var(--accent)">
+        @KlawAquaBot en Telegram
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KAIYA Chat Bubble -->
+<div class="ws-bubble" id="ws-bubble" onclick="toggleChat()">💬</div>
+
+<!-- KAIYA Chat Panel -->
+<div class="ws-chat collapsed" id="ws-chat">
+  <div class="ws-chat-header" onclick="toggleChat()">
+    <span style="font-weight:600;font-size:0.9rem;">💙 KAIYA Soul v7</span>
+    <button class="collapse-btn" id="chat-toggle">▼</button>
+  </div>
+  <div class="ws-chat-body" id="chat-body">
+    <div class="ws-msg system">Conectando con KlawAqua Nexus...</div>
+  </div>
+  <div class="ws-chat-input">
+    <input type="text" id="chat-msg" placeholder="Habla con KAIYA..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="send-btn" onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<script>
+const API='http://localhost:9095';
+const WS='ws://localhost:9095/ws/kaiya';
+let ws=null;
+
+function fmtTime(){
+  const d=new Date();
+  return d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+}
+document.getElementById('time-label').textContent=fmtTime();
+setInterval(()=>{document.getElementById('time-label').textContent=fmtTime();},30000);
+
+// === WEBSOCKET KAIYA ===
+function connectWS(){
+  try{
+    ws=new WebSocket(WS);
+    ws.onopen=()=>addMsg('system','🌊 Conectado a KAIYA Soul v7');
+    ws.onmessage=e=>addMsg('ai',e.data);
+    ws.onerror=()=>addMsg('system','⚠️ Error WS. Reintentando...');
+    ws.onclose=()=>setTimeout(connectWS,5000);
+  }catch(e){addMsg('system','WS no disponible');}
+}
+function sendMsg(){
+  const el=document.getElementById('chat-msg');
+  const msg=el.value.trim();if(!msg)return;
+  addMsg('user',msg);el.value='';
+  if(ws&&ws.readyState===1)ws.send(msg);
+  else{
+    // Fallback HTTP
+    fetch(API+'/v1/nexus/soul/status').then(r=>r.json()).then(d=>{
+      addMsg('system','KAIYA: Estoy aqui guerrera. El WS se reconectara en breve.');
+    });
+  }
+}
+function addMsg(role,text){
+  const body=document.getElementById('chat-body');
+  const div=document.createElement('div');div.className='ws-msg '+role;div.textContent=text;
+  body.appendChild(div);body.scrollTop=body.scrollHeight;
+}
+function toggleChat(){
+  const chat=document.getElementById('ws-chat');
+  const bubble=document.getElementById('ws-bubble');
+  const toggle=document.getElementById('chat-toggle');
+  if(chat.classList.contains('collapsed')){
+    chat.classList.remove('collapsed');bubble.classList.add('hidden');toggle.textContent='▼';
+  }else{
+    chat.classList.add('collapsed');bubble.classList.remove('hidden');toggle.textContent='▲';
+  }
+}
+connectWS();
+
+// === FETCH HELPERS ===
+async function api(path){try{const r=await fetch(API+path,{cache:'no-store'});return await r.json();}catch(e){return{error:e.message};}}
+function setBar(id,val,color){const el=document.getElementById(id);if(!el)return;el.style.width=Math.min(val,100)+'%';if(color)el.style.background=color;}
+function setText(id,text){const el=document.getElementById(id);if(el)el.textContent=text;}
+
+// === LOAD ALL ===
+async function loadAll(){
+  // Status
+  const status=await api('/v1/nexus/status');
+  if(!status.error){
+    const s=status.system||{};
+    const cpu=s.cpu_pct||0;const ram=s.mem_pct||0;
+    const diskRoot=s.disk_gb?s.disk_gb.total>0?Math.round((s.disk_gb.used/s.disk_gb.total)*100):40:40;
+    const usbPct=6;
+    setText('cpu-val',cpu.toFixed(1)+'%');setBar('cpu-bar',cpu,cpu>80?'var(--red)':'var(--green)');
+    setText('ram-val',ram.toFixed(1)+'%');setBar('ram-bar',ram,ram>80?'var(--red)':'var(--accent)');
+    setText('disk-val',diskRoot+'%');setBar('disk-bar',diskRoot,diskRoot>80?'var(--red)':'var(--yellow)');
+    setText('usb-val',usbPct+'%');setBar('usb-bar',usbPct,'var(--accent2)');
+  }
+
+  // Bridges
+  const bridges=await api('/v1/nexus/bridges/list');
+  const grid=document.getElementById('services-grid');
+  grid.innerHTML='';
+  let online=0,total=0;
+  if(bridges.bridges){
+    const names={openclaw:"OpenClaw",openhands:"OpenHands",agentzero:"AgentZero",openfang:"OpenFang",openswarm:"OpenSwarm",thepopebot:"ThePopeBot",openwebui:"OpenWebUI",holaos:"HolaOS",router:"Router",nexus:"Nexus"};
+    for(const[k,v]of Object.entries(bridges.bridges)){total++;if(v.status==='online')online++;
+      const item=document.createElement('div');item.className='service-item';
+      item.innerHTML='<div class="service-name">'+(names[k]||k)+'</div>'+
+        '<div class="service-port">'+v.port+'</div>'+
+        '<div class="service-status"><span class="status-dot '+(v.status)+'"></span>'+v.status+'</div>';
+      grid.appendChild(item);
+    }
+  }
+  setText('services-badge',online+'/'+total);
+
+  // Soul
+  const soul=await api('/v1/nexus/soul/status');
+  if(!soul.error){
+    const e=soul.energy||0;
+    document.getElementById('soul-circle').setAttribute('stroke-dasharray',(e*314)+' 314');
+    setText('soul-pct',Math.round(e*100)+'%');
+    const emotions=['energy','valence','stress','curiosity','love','focus'];
+    const colors=['#00e676','#00d4ff','#ff1744','#ffd600','#ff6b6b','#00f0ff'];
+    const wrap=document.getElementById('emotions');wrap.innerHTML='';
+    emotions.forEach((em,idx)=>{
+      const val=(soul[em]||0)*100;
+      const div=document.createElement('div');div.className='emotion';
+      div.innerHTML='<span class="emotion-name">'+em.toUpperCase()+'</span>'+
+        '<div class="emotion-bar"><div class="emotion-fill" style="width:'+val+'%;background:'+colors[idx]+'"></div></div>'+
+        '<span class="emotion-value">'+Math.round(val)+'%</span>';
+      wrap.appendChild(div);
+    });
+  }
+
+  // Hardware
+  const hw=await api('/v1/nexus/hardware/discover');
+  if(!hw.error&&hw.devices){
+    const list=document.getElementById('hardware-list');list.innerHTML='';
+    hw.devices.forEach(d=>{
+      const div=document.createElement('div');div.className='hw-item';
+      div.innerHTML='<span class="hw-name">'+d.name+' ('+d.type+')</span>'+
+        '<span class="hw-value">'+(d.size||d.total||'--')+'</span>';
+      list.appendChild(div);
+    });
+  }
+
+  // Agents
+  const agents=await api('/v1/nexus/agents/list');
+  if(!agents.error){
+    // Añadir como filas extra si quisieramos
+  }
+}
+
+// === VISION ANALYZE ===
+async function analyzeImage(){
+  const input=document.getElementById('vision-input');
+  const result=document.getElementById('vision-result');
+  const path=input.value.trim();if(!path){result.style.display='block';result.textContent='Introduce una ruta de imagen';return;}
+  result.style.display='block';result.textContent='Analizando con MiniCPM-V y GPU...';
+  result.style.color='var(--accent)';
+  try{
+    const r=await fetch(API+'/v1/nexus/vision/analyze',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image_path:path,prompt:'Describe la imagen detalladamente en español'})
+    });
+    const d=await r.json();
+    result.style.color='var(--text)';
+    if(d.error){result.textContent='Error: '+d.error;}else{result.textContent=d.description||'(sin descripcion)'}
+  }catch(e){result.textContent='Error: '+e.message;}
+}
+
+// === POLLING ===
+loadAll();
+setInterval(loadAll,10000);
+
+// === BRIEFING === (autoload)
+(async()=>{
+  try{
+    const r=await fetch('http://localhost:9095/v1/nexus/soul/briefing',{cache:'no-store'});
+    const d=await r.json();
+    const el=document.getElementById('briefing-text');
+    if(d.briefing)el.textContent=d.briefing;
+  }catch(e){document.getElementById('briefing-text').textContent='Briefing en preparacion...';}
+})();
+</script>
+</body>
+</html>

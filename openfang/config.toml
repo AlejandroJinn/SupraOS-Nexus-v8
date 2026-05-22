@@ -1,0 +1,75 @@
+# OpenFang - KlawAqua AGI Integration
+# The Agent Operating System para KlawAqua
+# Conectado a Ollama local para 100% local
+
+[api]
+bind_addr = "127.0.0.1"
+bind_port = 4200
+api_key = ""
+max_conn = 100
+cors_allow_origin = "*"
+
+[default_model]
+provider = "ollama"
+model = "qwen3.5:4b"
+base_url = "http://localhost:11434"
+api_key_env = ""
+context_length = 4096
+max_tokens = 2048
+temperature = 0.7
+
+[agents]
+default_agent = "klawaqua-assistant"
+auto_spawn = true
+
+[[agents.list]]
+name = "klawaqua-assistant"
+model = "qwen3.5:4b"
+provider = "ollama"
+system_prompt = "Eres el asistente principal del ecosistema KlawAqua-AGI. Responde en español, de forma concisa y directa. Eres parte de un sistema multi-agente que incluye Hermes, Agent Zero, OpenHands, ThePopeBot y OpenCLAW."
+
+[[agents.list]]
+name = "klawaqua-reasoner"
+model = "qwen3.6:35b-optimized"
+provider = "ollama"
+system_prompt = "Eres el motor de razonamiento profundo de KlawAqua. Analiza problemas complejos con detalle. Usa todo tu contexto para dar respuestas exhaustivas."
+
+[[agents.list]]
+name = "klawaqua-coder"
+model = "qwen2.5-coder:1.5b"
+provider = "ollama"
+system_prompt = "Eres el asistente de código de KlawAqua. Especializado en Python, Rust, JavaScript y configuración de sistemas."
+
+[memory]
+sqlite_path = "/opt/klawaqua/data/openfang_memory.db"
+decay_rate = 0.05
+max_context = 50
+
+[network]
+listen_addr = "127.0.0.1:4200"
+shared_secret = "klawaqua-sovereign-2026"
+
+[channels]
+[[channels.mcp_servers]]
+name = "klawaqua-filesystem"
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/opt/klawaqua"]
+
+[compaction]
+threshold = 40
+keep_recent = 20
+max_summary_tokens = 1024
+
+usage_footer = "Off"
+
+[klawqua_integration]
+ecosystem_path = "/opt/klawaqua"
+thepopebot_url = "http://localhost:8888"
+agentzero_url = "http://localhost:5080"
+openhands_url = "http://localhost:3000"
+openclaw_url = "http://localhost:18789"
+ollama_url = "http://localhost:11434"
+litellm_url = "http://localhost:4000"
+persistent_memory = "/opt/klawaqua/data/klawaqua_persistent_memory.db"
+memory_bridge = "/opt/klawaqua/scripts/memory_bridge.py"
+auto_router = "/opt/klawaqua/scripts/auto Router.py"
